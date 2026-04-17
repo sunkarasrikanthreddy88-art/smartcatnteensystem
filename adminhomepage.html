@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Canteen System</title>
+  <link rel="icon" type="image/png" href="logo-search-grid-2x.png">
+  <link rel="stylesheet" href="frontend/css/admin_style.css">
+</head>
+
+<body>
+  <header>
+    <div class="logo-container">
+      <div class="logo-orb">
+        <img src="logo-search-grid-2x.png" alt="Logo" class="logo">
+      </div>
+      <div class="brand">
+        <h1>Canteen Admin</h1>
+        <span class="tagline">Control Center</span>
+      </div>
+    </div>
+
+    <div class="search-wrapper">
+      <i class="search-icon">🔍</i>
+      <input type="text" id="searchBar" placeholder="Search menu items..." onkeyup="applyFilters()">
+    </div>
+
+    <div class="header-actions">
+      <div class="profile"><a href="account.html">My Account</a></div>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <section class="categories" id="categories-container">
+    <div class="category active" data-category="All Items" onclick="filterByCategory('All Items')">All Items</div>
+    <div class="category" data-category="Veg" onclick="filterByCategory('Veg')">Veg</div>
+    <div class="category" data-category="Non-Veg" onclick="filterByCategory('Non-Veg')">Non-Veg</div>
+    <div class="category" data-category="Snacks" onclick="filterByCategory('Snacks')">Snacks</div>
+    <div class="category" data-category="Drinks" onclick="filterByCategory('Drinks')">Drinks</div>
+  </section>
+
+  <main class="food-list" id="food-list">
+    <!-- Menu items will be loaded dynamically -->
+  </main>
+
+  <footer id="footer">
+    <p>&copy; 2025 Smart Canteen System Hub. Dashboard v2.0</p>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div id="toast" style="position:fixed;top:30px;right:30px;z-index:9999;display:flex;flex-direction:column;gap:10px;">
+  </div>
+
+  <script src="frontend/js/api.js"></script>
+  <script>
+    // Auth Check
+    if (!adminAPI.isLoggedIn()) {
+      window.location.href = 'login.html';
+    }
+
+    let allItems = [];
+    let currentCategory = 'All Items';
+
+    async function loadAdminMenu() {
+      try {
+        const items = await menuAPI.getMyMenu();
+        allItems = items;
+        renderAdminMenu(items);
+      } catch (error) {
+        if (error.message.includes('Authentication')) {
+          window.location.href = 'login.html';
+        }
+        console.error('Error loading menu:', error);
+      }
+    }
+
+    function filterByCategory(category) {
+      currentCategory = category;
+      const categoryDivs = document.querySelectorAll('.category');
+      categoryDivs.forEach(div => {
+        if (div.getAttribute('data-category') === category) {
+          div.classList.add('active');
+        } else {
+          div.classList.remove('active');
+        }
+      });
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const searchInput = document.getElementById('searchBar').value.toLowerCase();
+
+      const filteredItems = allItems.filter(item => {
+        const matchesSearch = item.name.toLowerCase().includes(searchInput);
+        const matchesCategory = currentCategory === 'All Items' || item.category === currentCategory;
+        return matchesSearch && matchesCategory;
+      });
+
+      renderAdminMenu(filteredItems);
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast');
+      const toast = document.createElement('div');
+      const colors = { success: '#10B981', error: '#ef4444', info: '#38BDF8', warning: '#f59e0b' };
+      toast.style.cssText = `
+        background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); color: white;
+        padding: 16px 24px; border-radius: 14px; font-size: 14px; font-weight: 600;
+        border-left: 4px solid ${colors[type] || colors.success};
+        box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        animation: toastIn 0.4s cubic-bezier(0.16,1,0.3,1); max-width: 350px;
+      `;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => { toast.style.animation = 'toastOut 0.3s ease forwards'; setTimeout(() => toast.remove(), 300); }, 3000);
+    }
+    const toastStyle = document.createElement('style');
+    toastStyle.textContent = `@keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}@keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(40px)}}`;
+    document.head.appendChild(toastStyle);
+
+    function renderAdminMenu(items) {
+      const foodList = document.getElementById('food-list');
+      foodList.innerHTML = '';
+
+      let cardIndex = 0;
+
+      // Only show Add Card if we're not searching/filtering or if "All Items" is selected
+      if (currentCategory === 'All Items' && !document.getElementById('searchBar').value) {
+        const addCard = document.createElement('div');
+        addCard.className = 'food-card add-card';
+        addCard.style.animationDelay = `${cardIndex * 0.08}s`;
+        addCard.onclick = () => openModal();
+        addCard.innerHTML = `
+          <div class="add-icon">+</div>
+          <h3 style="color: var(--primary);">Add New Item</h3>
+          <p style="color: var(--text-muted); font-size: 14px;">Expand your menu</p>
+        `;
+        foodList.appendChild(addCard);
+        cardIndex++;
+      }
+
+      // Add items from filtered list
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'food-card';
+        card.style.animationDelay = `${cardIndex * 0.08}s`;
+        card.innerHTML = `
+          <img src="${item.image}" alt="${item.name}" onerror="this.src='briyanis.webp'">
+          <div class="food-info">
+            <div class="category-tag">${item.category}</div>
+            <h3>${item.name}</h3>
+            <div class="price">₹${item.price}</div>
+            <div class="actions">
+              <button class="delete-btn" onclick="deleteItem('${item._id}')">DELETE</button>
+              <button class="edit-btn" onclick="openModal('${item._id}')">EDIT</button>
+            </div>
+          </div>
+        `;
+        foodList.appendChild(card);
+        cardIndex++;
+      });
+    }
+
+    async function deleteItem(id) {
+      if (confirm('Are you sure you want to delete this item?')) {
+        try {
+          await menuAPI.delete(id);
+          showToast('🗑️ Item deleted successfully', 'info');
+          loadAdminMenu();
+        } catch (error) {
+          showToast('❌ Error: ' + error.message, 'error');
+        }
+      }
+    }
+
+    // Modal & Form Logic
+    let isEditing = false;
+    let editId = null;
+
+    function openModal(id = null) {
+      const modalElement = document.getElementById('itemModal');
+      const modalTitle = document.getElementById('modalTitle');
+      const form = document.getElementById('itemForm');
+
+      modalElement.style.display = 'flex';
+
+      if (id) {
+        isEditing = true;
+        editId = id;
+        modalTitle.innerText = 'Refine Item';
+        const item = allItems.find(i => i._id === id);
+        form.itemName.value = item.name;
+        form.itemPrice.value = item.price;
+        form.itemCategory.value = item.category;
+      } else {
+        isEditing = false;
+        editId = null;
+        modalTitle.innerText = 'Create New Item';
+        form.reset();
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('itemModal').style.display = 'none';
+    }
+
+    window.onclick = function (event) {
+      const modalElement = document.getElementById('itemModal');
+      if (event.target == modalElement) {
+        closeModal();
+      }
+    }
+
+    async function handleFormSubmit(event) {
+      event.preventDefault();
+      const form = event.target;
+      const saveBtn = form.querySelector('button[type="submit"]');
+      const originalText = saveBtn.innerText;
+
+      saveBtn.innerText = 'Saving...';
+      saveBtn.disabled = true;
+
+      const formData = new FormData();
+      formData.append('name', form.itemName.value);
+      formData.append('price', form.itemPrice.value);
+      formData.append('category', form.itemCategory.value);
+
+      if (form.itemImage.files[0]) {
+        formData.append('image', form.itemImage.files[0]);
+      } else if (!isEditing) {
+        alert('Please select a visual representative (image)');
+        saveBtn.innerText = originalText;
+        saveBtn.disabled = false;
+        return;
+      }
+
+      try {
+        if (isEditing) {
+          await menuAPI.update(editId, formData);
+          showToast('✅ Item updated successfully!', 'success');
+        } else {
+          await menuAPI.create(formData);
+          showToast('🎉 New item added to menu!', 'success');
+        }
+        closeModal();
+        loadAdminMenu();
+      } catch (error) {
+        showToast('❌ Error: ' + error.message, 'error');
+      } finally {
+        saveBtn.innerText = originalText;
+        saveBtn.disabled = false;
+      }
+    }
+
+    function logout() {
+      if (confirm('Are you sure you want to sign out?')) {
+        adminAPI.logout();
+      }
+    }
+
+    loadAdminMenu();
+  </script>
+</body>
+
+<div id="itemModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeModal()">&times;</span>
+    <h2 id="modalTitle">Add New Item</h2>
+    <form id="itemForm" class="modal-form" onsubmit="handleFormSubmit(event)">
+      <div class="form-group">
+        <label>Item Name</label>
+        <input type="text" name="itemName" placeholder="e.g. Signature Sandwich" required>
+      </div>
+      <div class="form-group">
+        <label>Price (₹)</label>
+        <input type="number" name="itemPrice" placeholder="0.00" required>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select name="itemCategory" required>
+          <option value="" disabled selected>Select Category</option>
+          <option value="Veg">Veg</option>
+          <option value="Non-Veg">Non-Veg</option>
+          <option value="Snacks">Snacks</option>
+          <option value="Drinks">Drinks</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Item Visual (Image)</label>
+        <input type="file" name="itemImage" accept="image/*">
+      </div>
+      <button type="submit">Save Changes</button>
+    </form>
+  </div>
+</div>
+
+</html>

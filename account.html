@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Account - Smart Canteen</title>
+    <link rel="icon" type="image/icon" href="logo-search-grid-2x.png">
+    <link rel="stylesheet" href="frontend/css/account_style.css">
+</head>
+
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="logo-search-grid-2x.png" alt="Logo" class="logo">
+            <h1>👤 My Account</h1>
+        </div>
+        <div class="header-buttons">
+            <button class="header-btn" onclick="window.location.href='adminhomepage.html'">Menu</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Profile Section -->
+        <div class="profile-section">
+            <img id="profilePhoto" class="profile-photo" src="" alt="Profile Photo">
+            <input type="file" id="photoInput" accept="image/*" onchange="uploadPhoto()">
+            <button class="upload-photo-btn" onclick="document.getElementById('photoInput').click()">Change
+                Photo</button>
+
+            <div class="profile-info">
+                <form id="profileForm">
+                    <p><strong>Name:</strong> <input type="text" id="adminName" value="Loading..."></p>
+                    <p><strong>Email:</strong> <input type="email" id="adminEmail" value="Loading..." readonly></p>
+                    <p><strong>Phone:</strong> <input type="tel" id="adminPhone" value="Loading..."
+                            placeholder="Enter phone number"></p>
+                    <p><strong>Restaurant:</strong> <input type="text" id="restaurantName" value="Loading..."></p>
+                    <button type="button" class="save-btn" onclick="updateProfile()">Save Changes</button>
+                </form>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+
+        <!-- Orders Section -->
+        <div class="orders-section" id="ordersSection">
+            <h2>Orders Analytics</h2>
+
+            <!-- Statistics Section -->
+            <div class="stats-section" id="statsSection">
+                <div class="stat-card">
+                    <h3 id="totalOrdersLabel">Today's Orders</h3>
+                    <div class="stat-value" id="totalOrders">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3 id="monthlyOrdersLabel">This Month's Orders</h3>
+                    <div class="stat-value" id="monthlyOrders">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3 id="monthlyRevenueLabel">This Month's Revenue</h3>
+                    <div class="stat-value" id="monthlyRevenue">₹0</div>
+                </div>
+                <div class="stat-card">
+                    <h3 id="yearlyRevenueLabel">This Year's Revenue</h3>
+                    <div class="stat-value" id="yearlyRevenue">₹0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Filters -->
+        <div class="search-filters">
+            <input type="text" id="searchCustomer" class="search-input" placeholder="Search by customer name...">
+            <input type="date" id="searchDate" class="search-input" style="color-scheme: dark;">
+            <button class="search-btn" onclick="filterOrders()">Search</button>
+            <button class="search-btn clear-btn" onclick="clearFilters()">Clear</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Token</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Date/Time</th>
+                    <th>Items</th>
+                    <th>Amount</th>
+                    <th>Payment</th>
+                </tr>
+            </thead>
+            <tbody id="ordersBody">
+                <tr>
+                    <td colspan="7" class="no-data">Loading orders...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast"
+        style="position:fixed;top:30px;right:30px;z-index:9999;display:flex;flex-direction:column;gap:10px;"></div>
+
+    <script src="frontend/js/api.js"></script>
+    <script>
+        // Check authentication
+        if (!adminAPI.isLoggedIn()) {
+            window.location.href = 'login.html';
+        }
+
+        // Store all orders for filtering
+        let allOrders = [];
+        let initialDailyOrders = 0;
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast');
+            const toast = document.createElement('div');
+            const colors = { success: '#10B981', error: '#ef4444', info: '#38BDF8', warning: '#f59e0b' };
+            toast.style.cssText = `
+                background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); color: white;
+                padding: 16px 24px; border-radius: 14px; font-size: 14px; font-weight: 600;
+                border-left: 4px solid ${colors[type] || colors.success};
+                box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+                animation: toastIn 0.4s cubic-bezier(0.16,1,0.3,1); max-width: 350px;
+            `;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.animation = 'toastOut 0.3s ease forwards'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+        const toastStyle = document.createElement('style');
+        toastStyle.textContent = `@keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}@keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(40px)}}`;
+        document.head.appendChild(toastStyle);
+
+        // Load admin profile
+        async function loadProfile() {
+            try {
+                const profile = await adminAPI.getProfile();
+                document.getElementById('adminName').value = profile.username || 'N/A';
+                document.getElementById('adminEmail').value = profile.email || 'N/A';
+                document.getElementById('adminPhone').value = profile.phone || '';
+                document.getElementById('restaurantName').value = profile.restaurantName || '';
+
+                // Set profile photo
+                const photoElement = document.getElementById('profilePhoto');
+                if (profile.profileImage) {
+                    photoElement.src = profile.profileImage;
+                } else {
+                    photoElement.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><rect fill="%23146552"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="white" font-size="50">' + (profile.username ? profile.username[0].toUpperCase() : 'A') + '</text></svg>';
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        // Load statistics
+        async function loadStatistics() {
+            try {
+                console.log('Loading statistics...');
+                const response = await fetch('http://localhost:3000/api/orders/admin/statistics', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                    }
+                });
+
+                console.log('Statistics response status:', response.status);
+
+                if (response.ok) {
+                    const stats = await response.json();
+                    console.log('Statistics data:', stats);
+                    initialDailyOrders = stats.dailyOrders || 0;
+                    document.getElementById('totalOrders').textContent = initialDailyOrders;
+                    document.getElementById('totalOrdersLabel').textContent = "Today's Orders";
+                    document.getElementById('monthlyOrders').textContent = stats.monthlyOrders || 0;
+                    document.getElementById('monthlyRevenue').textContent = '₹' + (stats.monthlyRevenue || 0);
+                    document.getElementById('yearlyRevenue').textContent = '₹' + (stats.yearlyRevenue || 0);
+                } else {
+                    const errorText = await response.text();
+                    console.error('Statistics API error:', response.status, errorText);
+                }
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+
+        // Load orders
+        async function loadOrders() {
+            try {
+                const orders = await ordersAPI.getAdminOrders();
+                allOrders = orders; // Store for filtering
+                displayOrders(orders);
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                document.getElementById('ordersBody').innerHTML = '<tr><td colspan="7" class="no-data">Error loading orders</td></tr>';
+            }
+        }
+
+        // Display orders in table
+        function displayOrders(orders) {
+            const tbody = document.getElementById('ordersBody');
+
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="no-data">No orders found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = orders.map(order => {
+                const orderDate = new Date(order.createdAt);
+                const dateStr = orderDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+                const timeStr = orderDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+                return `
+                <tr>
+                    <td class="token-col">${order.tokenNumber || 'N/A'}</td>
+                    <td>${order.customerName || 'N/A'}</td>
+                    <td>${order.customerPhone || 'N/A'}</td>
+                    <td><small>${dateStr}<br>${timeStr}</small></td>
+                    <td>${order.items.map(item => item.menuItemId?.name || 'Item').join(', ')}</td>
+                    <td>₹${order.totalAmount || 0}</td>
+                    <td>${order.paymentMethod || 'N/A'}${order.paymentMethod === 'UPI' && order.paymentId ? '<br><small>' + order.paymentId + '</small>' : ''}</td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        // Filter orders
+        function filterOrders() {
+            const customerSearch = document.getElementById('searchCustomer').value.toLowerCase();
+            const dateFilter = document.getElementById('searchDate').value;
+
+            let filtered = allOrders;
+
+            // Filter by customer name
+            if (customerSearch) {
+                filtered = filtered.filter(order =>
+                    (order.customerName || '').toLowerCase().includes(customerSearch)
+                );
+            }
+
+            // Filter by date
+            if (dateFilter) {
+                filtered = filtered.filter(order => {
+                    // Extract YYYY-MM-DD from order createdAt
+                    const orderDate = new Date(order.createdAt).toISOString().split('T')[0];
+                    return orderDate === dateFilter;
+                });
+
+                // Update stats specifically for the selected date
+                document.getElementById('totalOrders').textContent = filtered.length;
+                const formattedDate = dateFilter.split('-').reverse().join('-');
+                document.getElementById('totalOrdersLabel').textContent = `Orders on ${formattedDate}`;
+            } else {
+                // Reset to initial daily orders if no date selected
+                document.getElementById('totalOrders').textContent = initialDailyOrders;
+                document.getElementById('totalOrdersLabel').textContent = "Today's Orders";
+            }
+
+            displayOrders(filtered);
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('searchCustomer').value = '';
+            document.getElementById('searchDate').value = '';
+
+            // Reset stats
+            document.getElementById('totalOrders').textContent = initialDailyOrders;
+            document.getElementById('totalOrdersLabel').textContent = "Today's Orders";
+
+            displayOrders(allOrders);
+        }
+
+        // Upload photo
+        async function uploadPhoto() {
+            const fileInput = document.getElementById('photoInput');
+            const file = fileInput.files[0];
+
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('profileImage', file);
+
+            try {
+                const response = await fetch('http://localhost:3000/api/admin/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    showToast('✅ Profile photo updated!', 'success');
+                    loadProfile();
+                } else {
+                    showToast('❌ Failed to update photo', 'error');
+                }
+            } catch (error) {
+                console.error('Error uploading photo:', error);
+                showToast('❌ Error uploading photo', 'error');
+            }
+        }
+
+        // Update profile
+        async function updateProfile() {
+            const phone = document.getElementById('adminPhone').value;
+            const restaurantName = document.getElementById('restaurantName').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/admin/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                    },
+                    body: JSON.stringify({ phone, restaurantName })
+                });
+
+                if (response.ok) {
+                    showToast('✅ Profile updated successfully!', 'success');
+                    loadProfile();
+                } else {
+                    showToast('❌ Failed to update profile', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showToast('❌ Error updating profile', 'error');
+            }
+        }
+
+        // Logout function
+        function logout() {
+            adminAPI.logout();
+        }
+
+        // Initialize
+        loadProfile();
+        loadStatistics();
+        loadOrders();
+    </script>
+</body>
+
+</html>

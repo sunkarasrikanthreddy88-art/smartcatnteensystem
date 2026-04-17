@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="logo-search-grid-2x.png">
+  <title>Smart Canteen System</title>
+  <link rel="stylesheet" href="frontend/css/homepage_style.css">
+</head>
+
+<body>
+  <header>
+    <div class="logo-container">
+      <div class="logo-orb">
+        <img src="logo-search-grid-2x.png" alt="Smart Canteen Logo" class="logo">
+      </div>
+      <div class="brand">
+        <h1>Smart Canteen</h1>
+        <span class="tagline">Gourmet Experience</span>
+      </div>
+    </div>
+
+    <div class="search-wrapper">
+      <i class="search-icon">🔍</i>
+      <input type="text" id="searchBar" placeholder="Search for your favorite food..." onkeyup="applyFilters()">
+    </div>
+
+    <div class="restaurant-selector">
+      <label for="adminSelectHeader">Dining at:</label>
+      <select id="adminSelectHeader">
+        <option value="">All Restaurants</option>
+      </select>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <h2>Delicious Food,<br><span>Delivered Daily.</span></h2>
+      <p>Experience the finest selection of fresh meals, snacks, and drinks from your favorite campus restaurants. Fast,
+        fresh, and just for you.</p>
+    </div>
+  </section>
+
+  <section class="categories" id="categories-container">
+    <div class="category active" data-category="All Items" onclick="filterByCategory('All Items')">All Items</div>
+    <div class="category" data-category="Veg" onclick="filterByCategory('Veg')">Veg</div>
+    <div class="category" data-category="Non-Veg" onclick="filterByCategory('Non-Veg')">Non-Veg</div>
+    <div class="category" data-category="Breakfast" onclick="filterByCategory('Breakfast')">Breakfast</div>
+    <div class="category" data-category="Lunch" onclick="filterByCategory('Lunch')">Lunch</div>
+    <div class="category" data-category="Dinner" onclick="filterByCategory('Dinner')">Dinner</div>
+    <div class="category" data-category="Snacks" onclick="filterByCategory('Snacks')">Snacks</div>
+    <div class="category" data-category="Drinks" onclick="filterByCategory('Drinks')">Drinks</div>
+    <div class="category" data-category="Desserts" onclick="filterByCategory('Desserts')">Desserts</div>
+    <div class="category" data-category="Fast Food" onclick="filterByCategory('Fast Food')">Fast Food</div>
+    <div class="category" data-category="Indian" onclick="filterByCategory('Indian')">Indian</div>
+    <div class="category" data-category="Chinese" onclick="filterByCategory('Chinese')">Chinese</div>
+    <div class="category" data-category="Italian" onclick="filterByCategory('Italian')">Italian</div>
+  </section>
+
+  <main class="food-list" id="food-list">
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" style="position:fixed;top:30px;right:30px;z-index:9999;display:flex;flex-direction:column;gap:10px;">
+  </div>
+
+  <aside id="cart-sidebar">
+    <div class="cart-header">
+      <h2>🛒 Your Cart</h2>
+      <span class="item-count" id="cart-count">0</span>
+    </div>
+    <div id="cart-items"></div>
+    <div class="cart-footer">
+      <div class="total">Total: <span>₹<span id="cart-total">0</span></span></div>
+      <button class="checkout-btn">Proceed to Checkout</button>
+    </div>
+  </aside>
+
+  <footer id="footer">
+    <p>&copy; 2025 Smart Canteen System. Crafted with ❤️ for Food Lovers.</p>
+  </footer>
+  <div class="checkout-modal" id="checkoutModal">
+    <div class="checkout-form">
+      <h2>Complete Your Order</h2>
+      <form id="checkoutFormElement">
+        <div class="form-group">
+          <label for="customerName">Full Name</label>
+          <input type="text" id="customerName" placeholder="Enter your name" required>
+        </div>
+        <div class="form-group">
+          <label for="customerPhone">Phone Number</label>
+          <input type="tel" id="customerPhone" placeholder="Enter your mobile number" required>
+        </div>
+        <div class="form-group">
+          <label for="paymentMethod">Payment Method</label>
+          <select id="paymentMethod" required>
+            <option value="">Select how you'll pay</option>
+            <option value="Cash">Cash</option>
+            <option value="UPI">UPI</option>
+            <option value="Card">Card</option>
+          </select>
+        </div>
+        <div class="form-buttons">
+          <button type="button" class="cancel-order" onclick="closeCheckoutModal()">Cancel</button>
+          <button type="submit" class="submit-order">Place Order</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="checkout-modal" id="receiptModal">
+    <div class="checkout-form" style="max-width: 500px;">
+      <h2 style="text-align: center; color: var(--primary);">Order Receipt</h2>
+      <div id="receiptContent"
+        style="padding: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 20px; margin: 15px 0;">
+      </div>
+      <div class="form-buttons">
+        <button type="button" class="submit-order" onclick="closeReceiptModal()" style="width: 100%;">Close</button>
+      </div>
+    </div>
+  </div>
+  <script src="frontend/js/api.js"></script>
+  <script>
+    let cart = [];
+    let total = 0;
+    let allMenuItems = [];
+    let currentCategory = 'All Items';
+
+    async function loadMenu() {
+      try {
+        allMenuItems = await menuAPI.getAll({ available: true });
+        renderMenu(allMenuItems);
+        loadAdminList();
+      } catch (error) {
+        console.error('Error loading menu:', error);
+      }
+    }
+    async function loadAdminList() {
+      try {
+        const admins = await menuAPI.getAll();
+        const adminSet = new Set();
+        admins.forEach(item => {
+          if (item.adminId && item.adminId.restaurantName) {
+            adminSet.add(JSON.stringify({
+              id: item.adminId._id,
+              name: item.adminId.restaurantName
+            }));
+          }
+        });
+        const adminSelectHeader = document.getElementById('adminSelectHeader');
+        if (adminSet.size > 0) {
+          const optionsHTML = '<option value="">All Restaurants</option>' +
+            Array.from(adminSet).map(adminStr => {
+              const admin = JSON.parse(adminStr);
+              return `<option value="${admin.id}">${admin.name}</option>`;
+            }).join('');
+          if (adminSelectHeader) {
+            adminSelectHeader.innerHTML = optionsHTML;
+            adminSelectHeader.addEventListener('change', applyFilters);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading admin list:', error);
+      }
+    }
+
+    function filterByCategory(category) {
+      currentCategory = category;
+      // Update UI active state
+      const categoryDivs = document.querySelectorAll('.category');
+      categoryDivs.forEach(div => {
+        if (div.getAttribute('data-category') === category) {
+          div.classList.add('active');
+        } else {
+          div.classList.remove('active');
+        }
+      });
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const searchInput = document.getElementById('searchBar').value.toLowerCase();
+      const selectedAdminId = document.getElementById('adminSelectHeader').value;
+
+      const filteredItems = allMenuItems.filter(item => {
+        const matchesSearch = item.name.toLowerCase().includes(searchInput);
+        const matchesAdmin = !selectedAdminId || (item.adminId && item.adminId._id === selectedAdminId);
+        const matchesCategory = currentCategory === 'All Items' || item.category === currentCategory;
+        return matchesSearch && matchesAdmin && matchesCategory;
+      });
+
+      renderMenu(filteredItems);
+    }
+    function renderMenu(items) {
+      const foodList = document.getElementById('food-list');
+      if (!items || items.length === 0) {
+        foodList.innerHTML = '<p style="color:var(--text-muted); text-align:center; grid-column: 1/-1; padding: 40px; font-size: 18px;">No menu items available currently.</p>';
+        return;
+      }
+      foodList.innerHTML = '';
+      items.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'food-card';
+        card.style.animationDelay = `${index * 0.08}s`;
+        card.innerHTML = `
+          <img src="${item.image}" alt="${item.name}" onerror="this.src='briyanis.webp'">
+          <div class="food-info">
+            <h3>${item.name}</h3>
+            <div class="price-tag">₹${item.price}</div>
+            <button onclick="addToCart('${item._id}', '${item.name}', ${item.price})">Add to Cart</button>
+          </div>
+        `;
+        foodList.appendChild(card);
+      });
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast');
+      const toast = document.createElement('div');
+      const colors = { success: '#10B981', error: '#ef4444', info: '#38BDF8', warning: '#f59e0b' };
+      toast.style.cssText = `
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(20px);
+        color: white;
+        padding: 16px 24px;
+        border-radius: 14px;
+        font-size: 14px;
+        font-weight: 600;
+        border-left: 4px solid ${colors[type] || colors.success};
+        box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        animation: toastIn 0.4s cubic-bezier(0.16,1,0.3,1);
+        max-width: 350px;
+      `;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'toastOut 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // Add toast animations
+    const toastStyle = document.createElement('style');
+    toastStyle.textContent = `
+      @keyframes toastIn { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
+      @keyframes toastOut { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(40px); } }
+    `;
+    document.head.appendChild(toastStyle);
+
+    function addToCart(id, item, price) {
+      const fullItem = allMenuItems.find(i => i._id === id);
+      const adminId = fullItem && fullItem.adminId ? fullItem.adminId._id : null;
+      cart.push({ id, item, price, quantity: 1, adminId });
+      total += price;
+      renderCart();
+      showToast(`✅ ${item} added to cart!`, 'success');
+    }
+    function removeFromCart(index) {
+      total -= cart[index].price;
+      cart.splice(index, 1);
+      renderCart();
+    }
+    function renderCart() {
+      const cartItemsDiv = document.getElementById('cart-items');
+      cartItemsDiv.innerHTML = '';
+      cart.forEach((c, index) => {
+        cartItemsDiv.innerHTML += `
+          <div class="cart-item">
+            <span>${c.item} - ₹${c.price}</span>
+            <button class="remove-btn" onclick="removeFromCart(${index})">Delete</button>
+          </div>
+        `;
+      });
+      document.getElementById('cart-total').innerText = total;
+      const countEl = document.getElementById('cart-count');
+      countEl.innerText = cart.length;
+      countEl.style.transform = 'scale(1.3)';
+      setTimeout(() => countEl.style.transform = 'scale(1)', 200);
+    }
+
+    function openCheckoutModal() {
+      document.getElementById('checkoutModal').classList.add('active');
+    }
+    function closeCheckoutModal() {
+      document.getElementById('checkoutModal').classList.remove('active');
+      document.getElementById('checkoutFormElement').reset();
+    }
+    document.querySelector('.checkout-btn').addEventListener('click', () => {
+      if (cart.length === 0) {
+        showToast('🛒 Your cart is empty!', 'warning');
+        return;
+      }
+      const selectedAdmin = document.getElementById('adminSelectHeader').value;
+      if (!selectedAdmin) {
+        showToast('🍽️ Please select a restaurant first!', 'warning');
+        return;
+      }
+
+      const invalidItems = cart.filter(c => c.adminId !== selectedAdmin);
+      if (invalidItems.length > 0) {
+        showToast('⚠️ Items from different restaurants: ' + invalidItems.map(i => i.item).join(', '), 'error');
+        return;
+      }
+
+      openCheckoutModal();
+    });
+    document.getElementById('checkoutFormElement').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const selectedAdmin = document.getElementById('adminSelectHeader').value;
+      const customerName = document.getElementById('customerName').value;
+      const customerPhone = document.getElementById('customerPhone').value;
+      const paymentMethodName = document.getElementById('paymentMethod').value;
+      const paymentId = 'PAY' + Date.now() + Math.random().toString(36).substring(2, 7).toUpperCase();
+      const orderData = {
+        items: cart.map(c => ({ menuItemId: c.id, quantity: c.quantity || 1 })),
+        totalAmount: total,
+        customerName,
+        customerPhone,
+        adminId: selectedAdmin,
+        paymentMethod: paymentMethodName,
+        paymentId: paymentId,
+        paymentStatus: 'Paid'
+      };
+      try {
+        const result = await ordersAPI.create(orderData);
+        closeCheckoutModal();
+        showReceipt(result.order, customerName, paymentMethodName, paymentId);
+        cart = [];
+        total = 0;
+        renderCart();
+      } catch (err) {
+        console.error(err);
+        showToast('❌ Failed to place order: ' + err.message, 'error');
+      }
+    });
+    function showReceipt(order, customerName, paymentMethod, paymentId) {
+      const now = new Date();
+      const dateTime = now.toLocaleString('en-IN', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      });
+      const restaurantName = order.adminId?.restaurantName || 'Smart Canteen';
+      const receiptHTML = `
+        <div style="text-align: center; border-bottom: 2px dashed #ccc; padding-bottom: 15px; margin-bottom: 15px;">
+          <h3 style="margin: 0; color: #146552;">${restaurantName}</h3>
+          <p style="margin: 5px 0; font-size: 14px;">Order Receipt</p>
+        </div>
+        <div style="text-align: center; background: #146552; color: white; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
+          <div style="font-size: 12px; margin-bottom: 5px;">Token Number</div>
+          <div style="font-size: 24px; font-weight: bold; letter-spacing: 2px;">${order.tokenNumber}</div>
+        </div>
+        <div style="font-size: 14px; color: #333;">
+          <p style="margin: 8px 0;"><strong>Customer:</strong> ${customerName}</p>
+          <p style="margin: 8px 0;"><strong>Date & Time:</strong> ${dateTime}</p>
+          <p style="margin: 8px 0;"><strong>Payment:</strong> ${paymentMethod}</p>
+          <p style="margin: 8px 0;"><strong>Total Amount:</strong> ₹${order.totalAmount}</p>
+        </div>
+        <div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 2px dashed #ccc; font-size: 12px; color: #666;">
+          Thank you for your order!
+        </div>
+      `;
+      document.getElementById('receiptContent').innerHTML = receiptHTML;
+      document.getElementById('receiptModal').classList.add('active');
+    }
+
+    function closeReceiptModal() {
+      document.getElementById('receiptModal').classList.remove('active');
+    }
+    loadMenu();
+  </script>
+</body>
+
+</html>

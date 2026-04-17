@@ -1,0 +1,399 @@
+﻿* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #146552;
+  padding: 15px;
+  color: white;
+}
+
+header h1 {
+  font-size: 24px;
+}
+
+header input {
+  padding: 8px;
+  border-radius: 5px;
+  border: none;
+  width: 250px;
+}
+
+.profile {
+  cursor: pointer;
+}
+
+.categories {
+  display: flex;
+  justify-content: center;
+  margin: 15px 0;
+  gap: 15px;
+}
+
+.category {
+  background: #bec6cb;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.food-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  ;
+  column-gap: 0px;
+  row-gap: 20px;
+  padding: 20px;
+}
+
+.food-card {
+  background: #0f2027;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  text-align: center;
+  width: 350px;
+  color: aliceblue;
+
+}
+
+.food-card img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+}
+
+.food-info {
+  padding: 10px;
+}
+
+.food-info h3 {
+  margin-bottom: 5px;
+}
+
+.food-info button {
+  margin-top: 5px;
+  padding: 8px 12px;
+  border: none;
+  background: #146552;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+aside h2 {
+  margin-bottom: 15px;
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0;
+}
+
+.remove-btn {
+  background: transparent;
+  border: none;
+  color: red;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.total {
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+.checkout-btn {
+  margin-top: 15px;
+  padding: 10px;
+  border: none;
+  width: 500px;
+  background: #146552;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+aside {
+  padding-top: 10px;
+  text-align: center;
+}
+
+body {
+  background: #002f43;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
+#footer {
+  text-align: center;
+  background-color: chocolate;
+  margin-top: auto;
+  padding: 15px 0;
+}
+
+/* Modal Styling */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #0f2027;
+  color: aliceblue;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+  color: #aaa;
+}
+
+.modal-form input,
+.modal-form select,
+.modal-form textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border: none;
+}
+
+.modal-form button {
+  background: #146552;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  width: 100%;
+}
+
+/* Add Button Style */
+.add-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  border: 2px dashed #146552;
+}
+
+.add-icon {
+  font-size: 50px;
+  color: #146552;
+  margin-bottom: 10px;
+}
+
+/* Header Actions and Logout Button */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logout-btn {
+  padding: 8px 16px;
+  background: #d9534f;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.logout-btn:hover {
+  background: #c9302c;
+}
+
+/* Analytics Dashboard Styles */
+.analytics-dashboard {
+  background: rgba(20, 101, 82, 0.1);
+  margin: 20px;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.analytics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.analytics-header h2 {
+  color: white;
+  font-size: 22px;
+}
+
+.toggle-analytics-btn {
+  padding: 8px 16px;
+  background: #146552;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.toggle-analytics-btn:hover {
+  background: #0f4d3d;
+}
+
+.analytics-content.hidden {
+  display: none;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: rgba(20, 101, 82, 0.3);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-card h3 {
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #4CAF50;
+}
+
+.search-section {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 5px;
+  font-size: 14px;
+  outline: none;
+  flex: 1;
+  min-width: 150px;
+}
+
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.search-input option {
+  background: #002f43;
+  color: white;
+}
+
+.search-btn {
+  background: #146552;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.search-btn:hover {
+  background: #0f4d3d;
+}
+
+.clear-btn {
+  background: #d9534f;
+}
+
+.clear-btn:hover {
+  background: #c9302c;
+}
+
+.orders-table-container {
+  overflow-x: auto;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  color: white;
+}
+
+.orders-table th,
+.orders-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.orders-table th {
+  background: rgba(20, 101, 82, 0.3);
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.orders-table td {
+  font-size: 13px;
+}
+
+.orders-table .no-data {
+  text-align: center;
+  padding: 20px;
+  color: #bec6cb;
+}
+
+.token-col {
+  font-weight: bold;
+  color: #4CAF50;
+}

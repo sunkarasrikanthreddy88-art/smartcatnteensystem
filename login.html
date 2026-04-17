@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login - Smart Canteen System</title>
+  <link rel="icon" type="image/png" href="logo-search-grid-2x.png">
+  <link rel="stylesheet" href="frontend/css/login_style.css">
+</head>
+
+<body>
+  <header>
+    <div class="logo-container">
+      <img src="logo-search-grid-2x.png" alt="Smart Canteen" class="logo">
+      <h1>Canteen System</h1>
+    </div>
+    <a href="signup.html">CREATE ACCOUNT</a>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2>Welcome Back</h2>
+      <p style="text-align: center; color: var(--text-muted); margin-top: -8px;">Log in to manage your canteen ecosystem
+      </p>
+
+      <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+      <form id="loginForm" class="user">
+        <div class="input-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+
+        <div class="input-group">
+          <label for="password">Security Password</label>
+          <input type="password" id="password" name="password" placeholder="••••••••" required>
+        </div>
+
+        <div class="forgot-password">
+          <a href="#" onclick="showForgotPassword(); return false;">Trouble signing in?</a>
+        </div>
+
+        <button type="submit" id="loginBtn">SIGN IN</button>
+      </form>
+
+      <div class="footer-link">
+        New admin? <a href="signup.html">create account</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="frontend/js/api.js"></script>
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    const errorMessage = document.getElementById('errorMessage');
+    const loginBtn = document.getElementById('loginBtn');
+
+    // Check if already logged in
+    if (adminAPI.isLoggedIn()) {
+      window.location.href = 'adminhomepage.html';
+    }
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError();
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Logging in...';
+
+      try {
+        await adminAPI.login(email, password);
+        window.location.href = 'adminhomepage.html';
+      } catch (error) {
+        showError(error.message);
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'LOGIN';
+      }
+    });
+
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.style.display = 'block';
+    }
+
+    function hideError() {
+      errorMessage.style.display = 'none';
+    }
+
+    function showForgotPassword() {
+      const email = document.getElementById('email').value;
+      if (!email) {
+        showError('Please enter your email address first');
+        return;
+      }
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        showError('Please enter a valid email address');
+        return;
+      }
+
+      hideError();
+    }
+  </script>
+</body>
+
+</html>

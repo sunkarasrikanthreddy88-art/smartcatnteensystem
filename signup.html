@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Signup - Smart Canteen System</title>
+  <link rel="icon" type="image/png" href="logo-search-grid-2x.png">
+  <link rel="stylesheet" href="frontend/css/signup_style.css">
+</head>
+
+<header>
+  <div class="logo-container">
+    <img src="logo-search-grid-2x.png" alt="Smart Canteen" class="logo">
+    <h1>Canteen System</h1>
+  </div>
+  <a href="login.html">SIGN IN</a>
+</header>
+
+<main>
+  <div class="card">
+    <h2 style="text-align: center; margin-bottom: 8px;">Join the Ecosystem</h2>
+    <p style="text-align: center; color: var(--text-muted); margin-bottom: 24px;">Register your canteen and start
+      serving today</p>
+    <div id="errorMessage" class="error-message" style="display: none;"></div>
+    <div id="successMessage" class="success-message" style="display: none;"></div>
+
+    <form id="signupForm" class="user">
+      <div class="user-grid">
+        <div class="input-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required>
+        </div>
+
+        <div class="input-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+
+        <div class="input-group">
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" name="phone" required>
+        </div>
+
+        <div class="input-group">
+          <label for="restaurantName">Canteen Name</label>
+          <input type="text" id="restaurantName" name="restaurantName" required>
+        </div>
+
+        <div class="input-group" style="grid-column: span 2;">
+          <label for="password">Security Password</label>
+          <input type="password" id="password" name="password" required minlength="6">
+        </div>
+
+        <button type="submit" id="signupBtn">REGISTER NOW</button>
+      </div>
+    </form>
+
+    <div class="footer-link">
+      Already registered? <a href="login.html">Sign in to your account</a>
+    </div>
+  </div>
+</main>
+
+<script src="frontend/js/api.js"></script>
+<script>
+  const signupForm = document.getElementById('signupForm');
+  const errorMessage = document.getElementById('errorMessage');
+  const successMessage = document.getElementById('successMessage');
+  const signupBtn = document.getElementById('signupBtn');
+
+  // Check if already logged in
+  if (adminAPI.isLoggedIn()) {
+    window.location.href = 'adminhomepage.html';
+  }
+
+  signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideMessages();
+
+    const username = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
+    const phone = document.getElementById('phone').value;
+    const restaurantName = document.getElementById('restaurantName').value;
+    const password = document.getElementById('password').value;
+
+    if (password.length < 6) {
+      showError('Password must be at least 6 characters long');
+      return;
+    }
+
+    signupBtn.disabled = true;
+    signupBtn.textContent = 'Creating Account...';
+
+    try {
+      await adminAPI.signup({ username, email, password, restaurantName, phone });
+      showSuccess('Account created successfully! Redirecting...');
+      setTimeout(() => {
+        window.location.href = 'adminhomepage.html';
+      }, 1500);
+    } catch (error) {
+      showError(error.message);
+      signupBtn.disabled = false;
+      signupBtn.textContent = 'SIGNUP';
+    }
+  });
+
+  function showError(message) {
+    errorMessage.textContent = message;
+    errorMessage.style.display = 'block';
+  }
+
+  function showSuccess(message) {
+    successMessage.textContent = message;
+    successMessage.style.display = 'block';
+  }
+
+  function hideMessages() {
+    errorMessage.style.display = 'none';
+    successMessage.style.display = 'none';
+  }
+</script>
+</body>
+
+</html>
