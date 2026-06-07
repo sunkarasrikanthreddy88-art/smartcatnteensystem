@@ -282,30 +282,6 @@ npm start
 
 ---
 
-## 📡 API Documentation
-
-### Authentication Endpoints
-
-#### POST `/api/admin/signup`
-Register a new restaurant admin
-```json
-{
-  "restaurantName": "My Restaurant",
-  "email": "admin@restaurant.com",
-  "password": "securepassword",
-  "phone": "1234567890",
-  "address": "123 Main St"
-}
-```
-
-#### POST `/api/admin/login`
-Login as admin
-```json
-{
-  "email": "admin@restaurant.com",
-  "password": "securepassword"
-}
-```
 
 ### Menu Endpoints
 
