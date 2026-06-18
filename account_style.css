@@ -1,0 +1,336 @@
+/* Account Page Specific Styling */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+:root {
+    --primary: #10B981;
+    --primary-dark: #059669;
+    --secondary: #1E293B;
+    --accent: #38BDF8;
+    --bg: #020617;
+    --card-bg: rgba(15, 23, 42, 0.9);
+    --text: #F8FAFC;
+    --text-muted: #94A3B8;
+    --border: rgba(255, 255, 255, 0.08);
+    --transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo {
+    height: 45px;
+    width: auto;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background: var(--bg);
+    background-image:
+        radial-gradient(at 100% 0%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.12) 0px, transparent 50%);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+header {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 20px 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--glass-border);
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+header h1 {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.header-btn {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 10px 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.header-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+}
+
+.container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.profile-section {
+    background: var(--card-bg);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 40px;
+    text-align: center;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.profile-photo {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--primary);
+    margin: 0 auto 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.upload-photo-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 30px;
+    transition: var(--transition);
+}
+
+.upload-photo-btn:hover {
+    background: var(--secondary);
+    box-shadow: 0 5px 15px rgba(20, 101, 82, 0.4);
+}
+
+.profile-info {
+    text-align: left;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.profile-info p {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.profile-info strong {
+    font-size: 14px;
+    color: var(--acc-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.profile-info input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 16px;
+    outline: none;
+    transition: var(--acc-transition);
+}
+
+.profile-info input:focus {
+    border-color: var(--acc-primary);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.profile-info input[readonly] {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.save-btn {
+    width: 100%;
+    background: var(--acc-primary);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 10px;
+    transition: var(--acc-transition);
+}
+
+.save-btn:hover {
+    background: var(--acc-secondary);
+}
+
+.logout-btn {
+    background: var(--acc-danger);
+    color: white;
+    border: none;
+    padding: 14px 40px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 30px;
+    transition: var(--acc-transition);
+}
+
+.logout-btn:hover {
+    background: #c9302c;
+    transform: scale(1.05);
+}
+
+.orders-section {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 24px;
+    padding: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.orders-section h2 {
+    margin-bottom: 25px;
+    font-size: 22px;
+    color: var(--acc-success);
+}
+
+.stats-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-card h3 {
+    font-size: 14px;
+    color: var(--acc-muted);
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--acc-success);
+}
+
+.search-filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.search-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    outline: none;
+    flex: 1;
+    min-width: 200px;
+}
+
+.search-btn {
+    background: var(--acc-primary);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--acc-transition);
+}
+
+.clear-btn {
+    background: var(--acc-danger);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th,
+td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+th {
+    background: rgba(20, 101, 82, 0.2);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--acc-muted);
+}
+
+.token-col {
+    color: var(--acc-success);
+    font-weight: 700;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 15px;
+    }
+
+    .profile-section {
+        padding: 25px;
+    }
+
+    .stat-value {
+        font-size: 24px;
+    }
+}
